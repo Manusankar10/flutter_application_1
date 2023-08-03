@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/cartscreen.dart';
 
-
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -92,7 +91,7 @@ class _HomePageState extends State<HomePage> {
                 (index) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.5,
+                    width: MediaQuery.of(context).size.width * 0.6,
                     child: Card(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -133,17 +132,40 @@ class _HomePageState extends State<HomePage> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   const Text(
-                                    'Rs.500',
+                                    'Rs.100',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16),
                                   ),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      _addToCart('Product Title', 500);
-                                    },
-                                    child: const Text('Add to Cart'),
-                                  ),
+                                  _addedItems.containsKey('Product Title')
+                                      ? Row(
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(Icons.remove),
+                                              onPressed: () {
+                                                _removeFromCart('Product Title');
+                                              },
+                                            ),
+                                            Text(
+                                              _addedItems['Product Title']!.toString(),
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.add),
+                                              onPressed: () {
+                                                _addToCart('Product Title', 500);
+                                              },
+                                            ),
+                                          ],
+                                        )
+                                      : ElevatedButton(
+                                          onPressed: () {
+                                            _addToCart('Product Title', 500);
+                                          },
+                                          child: const Text('Add to Cart'),
+                                        ),
                                 ],
                               ),
                             ),
@@ -210,5 +232,13 @@ class _HomePageState extends State<HomePage> {
         duration: const Duration(seconds: 2),
       ),
     );
+  }
+
+  void _removeFromCart(String productTitle) {
+    setState(() {
+      if (_addedItems.containsKey(productTitle) && _addedItems[productTitle]! > 0) {
+        _addedItems[productTitle] = _addedItems[productTitle]! - 1;
+      }
+    });
   }
 }
