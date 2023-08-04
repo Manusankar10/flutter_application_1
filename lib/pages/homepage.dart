@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:flutter_application_1/pages/cartscreen.dart';
 
 class HomePage extends StatefulWidget {
@@ -85,97 +88,119 @@ class _HomePageState extends State<HomePage> {
           ),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: Row(
-              children: List.generate(
-                10,
-                (index) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.6,
-                    child: Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+            child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance.collection('products').doc('EJke0f55mR9m60LwUuyv').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                }
+
+                final product = snapshot.data?.data();
+                if (product == null) {
+                  return Text('Product not found.');
+                }
+
+                final title = product['title'] ?? '';
+                final description = product['description'] ?? '';
+                final price = product['price'] ?? '';
+
+                return Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: SizedBox(
-                        height: MediaQuery.of(context).size.width * 0.8,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Image.asset(
-                              'assets/images/food.jpeg',
-                              fit: BoxFit.cover,
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text(
-                                'Product Title',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Text(
-                                'Product Description',
-                                style:
-                                    TextStyle(fontSize: 14, color: Colors.grey),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    'Rs.100',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16),
+                        width: MediaQuery.of(context).size.width * 0.6,
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.width * 0.8,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Image.asset(
+                                  'assets/images/food.jpeg',
+                                  fit: BoxFit.cover,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    title,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
                                   ),
-                                  _addedItems.containsKey('Product Title')
-                                      ? Row(
-                                          children: [
-                                            IconButton(
-                                              icon: Icon(Icons.remove),
-                                              onPressed: () {
-                                                _removeFromCart('Product Title');
-                                              },
-                                            ),
-                                            Text(
-                                              _addedItems['Product Title']!.toString(),
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16),
-                                            ),
-                                            IconButton(
-                                              icon: Icon(Icons.add),
-                                              onPressed: () {
-                                                _addToCart('Product Title', 500);
-                                              },
-                                            ),
-                                          ],
-                                        )
-                                      : ElevatedButton(
-                                          onPressed: () {
-                                            _addToCart('Product Title', 500);
-                                          },
-                                          child: const Text('Add to Cart'),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: Text(
+                                    description,
+                                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Rs.$price',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
                                         ),
-                                ],
-                              ),
+                                      ),
+                                      _addedItems.containsKey(title)
+                                          ? Row(
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(Icons.remove),
+                                                  onPressed: () {
+                                                    _removeFromCart(title);
+                                                  },
+                                                ),
+                                                Text(
+                                                  _addedItems[title]!.toString(),
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  icon: const Icon(Icons.add),
+                                                  onPressed: () {
+                                                    _addToCart(title, price);
+                                                  },
+                                                ),
+                                              ],
+                                            )
+                                          : ElevatedButton(
+                                              onPressed: () {
+                                                _addToCart(title, price);
+                                              },
+                                              child: const Text('Add to Cart'),
+                                            ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -225,7 +250,6 @@ class _HomePageState extends State<HomePage> {
       }
     });
 
-    // Optional: Show a snackbar to indicate the item has been added to the cart
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$productTitle added to cart'),
